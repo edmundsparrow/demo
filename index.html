@@ -1,1 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Gnoke Attendance</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f0f4f1;
+      --text:    #1a2e21;
+      --muted:   #5a7a63;
+      --accent:  #065f46;
+      --accent2: #34d399;
+      --border:  #c8dece;
+      --surface: #ffffff;
+      --font-sans:    'DM Sans', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+      --font-display: 'Playfair Display', serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle background radials matching the reference's glow style */
+    .bg-layer {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse at 80% 90%, rgba(6,95,70,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse at 10% 15%, rgba(52,211,153,0.06) 0%, transparent 50%);
+    }
+
+    /* Subtle dot-grid texture — gives the page "paper register" feel */
+    .bg-layer::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(6,95,70,0.08) 1px, transparent 1px);
+      background-size: 22px 22px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    .page {
+      position: relative; z-index: 1;
+      width: 100%; height: 100dvh;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 48px 28px 44px;
+    }
+
+    /* ── Version badge ── */
+    .version {
+      position: absolute; top: 52px; right: 28px;
+      font-family: var(--font-mono); font-size: .62rem;
+      letter-spacing: .08em; color: var(--muted);
+      opacity: 0; animation: up .5s ease .05s forwards;
+    }
+
+    /* ── Top: brand + title ── */
+    .top {
+      display: flex; flex-direction: column; gap: 4px;
+      opacity: 0; animation: up .5s ease .1s forwards;
+    }
+    .gnoke-label {
+      font-family: var(--font-mono); font-size: .72rem;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--accent2);
+    }
+    .app-name {
+      font-family: var(--font-display); font-size: 2.6rem;
+      font-weight: 700; letter-spacing: -.03em; line-height: 1;
+      color: var(--text);
+    }
+    .app-name em {
+      font-style: italic; color: var(--accent);
+    }
+
+    /* ── Mid: description + module pills ── */
+    .mid {
+      display: flex; flex-direction: column; gap: 24px;
+      opacity: 0; animation: up .5s ease .25s forwards;
+    }
+    .desc {
+      font-size: 1rem; font-weight: 300;
+      color: var(--muted); line-height: 1.65; max-width: 320px;
+    }
+    .desc strong { color: var(--text); font-weight: 600; }
+
+    /* Module pills — mirroring the reference's "pillars" but adapted for 4 pages */
+    .modules { display: flex; flex-direction: column; gap: 8px; }
+
+    .module {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s, box-shadow .15s, transform .15s;
+      cursor: pointer;
+    }
+    .module:hover {
+      border-color: var(--accent2);
+      box-shadow: 0 2px 12px rgba(6,95,70,0.08);
+      transform: translateX(2px);
+    }
+    .module:active { transform: scale(.98); }
+
+    .module-icon {
+      font-size: 1.15rem; width: 28px;
+      text-align: center; flex-shrink: 0;
+    }
+    .module-body { flex: 1; }
+    .module-label {
+      font-family: var(--font-mono); font-size: .62rem;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 1px;
+    }
+    .module-name {
+      font-size: .9rem; font-weight: 600;
+      color: var(--text); display: block;
+    }
+    .module-arrow {
+      font-size: .85rem; color: var(--accent2);
+      opacity: 0; transition: opacity .15s, transform .15s;
+    }
+    .module:hover .module-arrow { opacity: 1; transform: translateX(3px); }
+
+    /* ── Bottom: open all + skip ── */
+    .bottom {
+      display: flex; flex-direction: column; gap: 14px;
+      opacity: 0; animation: up .5s ease .4s forwards;
+    }
+
+    .enter-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 16px;
+      background: var(--accent); color: #fff;
+      font-family: var(--font-sans); font-size: .92rem; font-weight: 600;
+      border: none; border-radius: 10px;
+      cursor: pointer; text-decoration: none;
+      transition: opacity .15s, transform .15s;
+    }
+    .enter-btn:active { opacity: .88; transform: scale(.98); }
+    .arrow { transition: transform .2s; display: inline-block; }
+    .enter-btn:hover .arrow { transform: translateX(4px); }
+
+    .skip-row {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .skip-row input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+    .skip-row label {
+      font-family: var(--font-mono); font-size: .62rem;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer; user-select: none;
+    }
+
+    /* ── Transitions ── */
+    body.out { animation: fadeOut .28s ease forwards; }
+    @keyframes fadeOut { to { opacity: 0; } }
+    @keyframes up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<span class="version">v1.0</span>
+
+<div class="page">
+
+  <!-- Brand -->
+  <div class="top">
+    <span class="gnoke-label">Gnoke</span>
+    <span class="app-name">Atten<em>dance</em></span>
+  </div>
+
+  <!-- Modules -->
+  <div class="mid">
+    <p class="desc">
+      A modular class register for <strong>termly attendance</strong> —
+      track students, weekly presence, daily sessions, and
+      <strong>term analytics</strong> all in one place.
+    </p>
+
+    <div class="modules">
+      <a class="module" href="attendance1.html" onclick="navigate(event, this)">
+        <span class="module-icon">📋</span>
+        <span class="module-body">
+          <span class="module-label">Module 1</span>
+          <span class="module-name">Student Ledger</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
+      <a class="module" href="attendance2.html" onclick="navigate(event, this)">
+        <span class="module-icon">📅</span>
+        <span class="module-body">
+          <span class="module-label">Module 2</span>
+          <span class="module-name">Weekly Register</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
+      <a class="module" href="attendance3.html" onclick="navigate(event, this)">
+        <span class="module-icon">📊</span>
+        <span class="module-body">
+          <span class="module-label">Module 3</span>
+          <span class="module-name">Term Analysis</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
+      <a class="module" href="attendance4.html" onclick="navigate(event, this)">
+        <span class="module-icon">🕐</span>
+        <span class="module-body">
+          <span class="module-label">Module 4</span>
+          <span class="module-name">Session Register</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="bottom">
+    <a class="enter-btn" href="attendance1.html" onclick="go(event)">
+      Open Register <span class="arrow">→</span>
+    </a>
+    <div class="skip-row">
+      <input type="checkbox" id="skip" />
+      <label for="skip">Don't show again</label>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const KEY = 'gnoke_attendance_skip_intro';
+  const DEST = 'attendance1.html';
+
+  // Auto-skip if opted in
+  if (localStorage.getItem(KEY) === '1') window.location.replace(DEST);
+
+  function go(e) {
+    e.preventDefault();
+    if (document.getElementById('skip').checked) localStorage.setItem(KEY, '1');
+    document.body.classList.add('out');
+    setTimeout(() => window.location.href = DEST, 280);
+  }
+
+  function navigate(e, el) {
+    e.preventDefault();
+    document.body.classList.add('out');
+    setTimeout(() => window.location.href = el.href, 280);
+  }
+</script>
+
+</body>
+</html>

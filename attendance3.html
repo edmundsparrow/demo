@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Term Analysis — GNOKE Attendance</title>
+    <style>
+        :root {
+            --primary: #1a2e21;
+            --emerald: #065f46;
+            --blue: #2563eb;
+            --pink: #db2777;
+            --gray-bg: #f0f4f1;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+
+        body { 
+            background-color: var(--gray-bg); 
+            color: #1f2937; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0;
+            padding-bottom: 4rem;
+        }
+
+        header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 1rem 1.5rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+
+        main { padding: 1.5rem; max-width: 900px; margin: auto; }
+
+        .hero-section { margin-bottom: 2rem; }
+        .hero-title { font-size: 24px; font-weight: 800; margin: 0; color: var(--primary); }
+        .hero-sub { font-size: 13px; color: #6b7280; font-weight: 500; }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .card-footer {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .gender-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(to right, white 50%, #fafafa 50%);
+        }
+
+        .gender-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .gender-stat-val { font-size: 40px; font-weight: 900; }
+
+        .btn-print {
+            background: var(--emerald);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(6, 95, 70, 0.2);
+        }
+
+        @media print {
+            .btn-print { display: none; }
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
+            <h1 style="margin: 0; font-size: 18px;">Term Analysis</h1>
+        </div>
+        <button class="btn-print" onclick="window.print()">Print Report</button>
+    </header>
+
+    <main>
+        <div class="hero-section">
+            <h2 class="hero-title">Termly Attendance Analysis</h2>
+            <p class="hero-sub">Consolidated analytics from all ledger records</p>
+        </div>
+
+        <div class="analysis-grid">
+            <div class="card">
+                <div>
+                    <div class="card-label">Total Attendances</div>
+                    <div id="term-total" class="card-value">0</div>
+                </div>
+                <div class="card-footer">Cumulative term presence</div>
+            </div>
+
+            <div class="card">
+                <div>
+                    <div class="card-label">Times School Open</div>
+                    <div id="term-open" class="card-value">0</div>
+                </div>
+                <div class="card-footer">Total instructional sessions</div>
+            </div>
+
+            <div class="card" style="background: var(--primary); color: white;">
+                <div>
+                    <div class="card-label" style="color: #4ade80;">Average Daily Attendance</div>
+                    <div id="term-avg" class="card-value" style="color: white;">0.0</div>
+                </div>
+                <div class="card-footer" style="color: #94a3b8; border-color: #2a3e31;">Per session average this term</div>
+            </div>
+
+            <div class="card gender-card">
+                <div class="card-label" style="text-align: center; margin-bottom: 1.5rem;">Total Attendances — Boys vs Girls</div>
+                <div class="gender-container">
+                    <div>
+                        <div class="card-label" style="color: var(--blue);">Boys</div>
+                        <div id="boys-sum" class="gender-stat-val" style="color: var(--blue);">0</div>
+                    </div>
+                    <div>
+                        <div class="card-label" style="color: var(--pink);">Girls</div>
+                        <div id="girls-sum" class="gender-stat-val" style="color: var(--pink);">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function updateAnalysis() {
+            const maleData = JSON.parse(localStorage.getItem('ledger_male') || '{"students":[]}');
+            const femaleData = JSON.parse(localStorage.getItem('ledger_female') || '{"students":[]}');
+            const summaryData = JSON.parse(localStorage.getItem('attendance_summary_data') || '[]');
+            const weeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 0;
+
+            let totalAttendance = 0;
+            let totalOpenings = 0;
+            let boysTotal = 0;
+            let girlsTotal = 0;
+
+            for (let i = 0; i < weeks; i++) {
+                let b = 0;
+                maleData.students.forEach(s => b += parseInt(s.weeks[i]) || 0);
+                
+                let g = 0;
+                femaleData.students.forEach(s => g += parseInt(s.weeks[i]) || 0);
+
+                const weekOpenings = parseInt(summaryData[i]?.o) || 10;
+                
+                boysTotal += b;
+                girlsTotal += g;
+                totalAttendance += (b + g);
+                totalOpenings += weekOpenings;
+            }
+
+            document.getElementById('term-total').innerText = totalAttendance;
+            document.getElementById('term-open').innerText = totalOpenings;
+            document.getElementById('boys-sum').innerText = boysTotal;
+            document.getElementById('girls-sum').innerText = girlsTotal;
+            
+            const avg = totalOpenings > 0 ? (totalAttendance / totalOpenings).toFixed(1) : "0.0";
+            document.getElementById('term-avg').innerText = avg;
+        }
+
+        window.addEventListener('storage', updateAnalysis);
+        updateAnalysis();
+    </script>
+    <script src="hmenu.js"></script>
+</body>
+</html>

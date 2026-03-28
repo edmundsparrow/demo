@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Register — GNOKE Attendance</title>
+    <style>
+        :root {
+            --primary: #1a2e21;
+            --emerald: #065f46;
+            --blue: #2563eb;
+            --purple: #9333ea;
+            --gray-bg: #f0f4f1;
+        }
+
+        body { 
+            background-color: var(--gray-bg); 
+            color: #1f2937; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0;
+            padding-bottom: 2rem;
+        }
+
+        header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 1rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        main { padding: 1.5rem; max-width: 1200px; margin: auto; }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 1rem; 
+            margin-bottom: 2rem; 
+        }
+
+        .stat-card { 
+            background: white; 
+            padding: 1rem; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-top: 4px solid #e5e7eb;
+        }
+
+        .stat-label { font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase; }
+        .stat-value { font-size: 20px; font-weight: 900; margin-top: 8px; }
+
+        .toolbar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-bottom: 1.5rem;
+        }
+
+        .sync-indicator { 
+            background: white; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            border: 1px solid #e5e7eb; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--emerald);
+        }
+
+        .table-container { 
+            background: white; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            border: 1px solid #e5e7eb; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        thead { background: var(--primary); color: white; font-size: 10px; letter-spacing: 1px; }
+        th, td { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+        th { padding: 15px; }
+
+        input { 
+            width: 100%; 
+            border: none; 
+            padding: 15px 5px; 
+            text-align: center; 
+            background: transparent; 
+            outline: none; 
+            font-size: 14px;
+            font-weight: 500;
+        }
+        input:focus { background: #f8fafc; }
+
+        .row-total { background: #ecfdf5; color: var(--emerald); font-weight: 900; }
+        
+        input.auto-val { color: var(--emerald); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
+            <h1 style="margin: 0; font-size: 20px;">Weekly Register</h1>
+        </div>
+        <div style="background: #fef3c7; border-radius: 50%; padding: 4px; cursor: pointer;">🌙</div>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <div>
+                <h2 style="margin: 0;">Class Presence Summary</h2>
+                <p style="margin: 0; font-size: 12px; color: #6b7280;">Boys & girls present per week</p>
+            </div>
+            <div class="sync-indicator">
+                <span id="sync-dot" style="height: 8px; width: 8px; background: #10b981; border-radius: 50%; transition: transform 0.2s;"></span>
+                DEEP SYNC ACTIVE
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" style="border-color: var(--blue);">
+                <div class="stat-label">Boys on Roll</div>
+                <div id="class-boys" class="stat-value" style="color: var(--blue);">0</div>
+            </div>
+            <div class="stat-card" style="border-color: var(--purple);">
+                <div class="stat-label">Girls on Roll</div>
+                <div id="class-girls" class="stat-value" style="color: var(--purple);">0</div>
+            </div>
+            <div class="stat-card" style="border-color: #6b7280;">
+                <div class="stat-label">Weeks in Term</div>
+                <div id="ledger-weeks" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total on Roll</div>
+                <div id="class-total" class="stat-value">0</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Week</th>
+                        <th>Boys Present</th>
+                        <th>Girls Present</th>
+                        <th>Times Open</th>
+                        <th>Total Present</th>
+                    </tr>
+                </thead>
+                <tbody id="register-body"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const body = document.getElementById('register-body');
+
+        function syncAndRebuild() {
+            const targetWeeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 2;
+            const maleData = JSON.parse(localStorage.getItem('ledger_male') || '{"students":[]}');
+            const femaleData = JSON.parse(localStorage.getItem('ledger_female') || '{"students":[]}');
+            
+            // Load existing saved summary data to preserve 'Openings' values
+            const savedSummary = JSON.parse(localStorage.getItem('attendance_summary_data') || '[]');
+            
+            document.getElementById('class-boys').innerText = maleData.students.length;
+            document.getElementById('class-girls').innerText = femaleData.students.length;
+            document.getElementById('class-total').innerText = maleData.students.length + femaleData.students.length;
+            document.getElementById('ledger-weeks').innerText = targetWeeks;
+
+            body.innerHTML = '';
+            for (let i = 0; i < targetWeeks; i++) {
+                let boysSum = 0;
+                maleData.students.forEach(student => {
+                    boysSum += parseInt(student.weeks[i]) || 0;
+                });
+
+                let girlsSum = 0;
+                femaleData.students.forEach(student => {
+                    girlsSum += parseInt(student.weeks[i]) || 0;
+                });
+
+                // Get saved opening for this week, or default to 10
+                const openingVal = savedSummary[i] ? savedSummary[i].o : 10;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="background: #f9fafb; font-weight: bold; color: #9ca3af;">Wk ${i + 1}</td>
+                    <td><input type="number" class="in-boys auto-val" value="${boysSum || ''}" readonly></td>
+                    <td><input type="number" class="in-girls auto-val" value="${girlsSum || ''}" readonly></td>
+                    <td><input type="number" value="${openingVal}" class="in-open" oninput="calculate()"></td>
+                    <td class="row-total">0</td>
+                `;
+                body.appendChild(tr);
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const summaryData = [];
+            document.querySelectorAll('#register-body tr').forEach((row, index) => {
+                const b = parseInt(row.querySelector('.in-boys').value) || 0;
+                const g = parseInt(row.querySelector('.in-girls').value) || 0;
+                const o = parseInt(row.querySelector('.in-open').value) || 0;
+                
+                row.querySelector('.row-total').innerText = b + g;
+
+                // Save week data including the manually inputted opening
+                summaryData.push({ w: index + 1, o: o });
+            });
+            
+            // Persist opening data for Webapp 3 to use
+            localStorage.setItem('attendance_summary_data', JSON.stringify(summaryData));
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key.startsWith('ledger_') || e.key === 'attendance_global_weeks') {
+                syncAndRebuild();
+                const dot = document.getElementById('sync-dot');
+                dot.style.transform = "scale(1.5)";
+                setTimeout(() => dot.style.transform = "scale(1)", 200);
+            }
+        });
+
+        syncAndRebuild();
+    </script>
+    <script src="hmenu.js"></script>
+</body>
+</html>
