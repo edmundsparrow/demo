@@ -31,7 +31,20 @@
             align-items: center;
         }
 
-        /* Week Switcher Styling */
+        .reset-btn {
+            background: #f87171;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .reset-btn:hover { background: #ef4444; }
+
         .week-nav {
             background: white;
             padding: 10px;
@@ -149,6 +162,7 @@
         <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
         <h1 id="header-title" style="margin: 0; font-size: 18px;">Session Register: Week 1</h1>
     </div>
+    <button class="reset-btn" onclick="clearCurrentWeek()">Reset Week</button>
 </header>
 
 <nav class="week-nav" id="week-tabs"></nav>
@@ -238,7 +252,6 @@
         document.getElementById('total-m').innerText = sumM;
         document.getElementById('total-a').innerText = sumA;
 
-        // Logic: 1 week = 10 sessions
         const totalPresence = sumM + sumA;
         const maxPossible = totalRoll * 10;
         
@@ -263,14 +276,12 @@
             m: Array.from(document.querySelectorAll('.m-input')).map(i => i.value),
             a: Array.from(document.querySelectorAll('.a-input')).map(i => i.value)
         };
-        // Save using a unique key per week
         localStorage.setItem(`webapp4_week_${currentWeek}`, JSON.stringify(data));
     }
 
     function loadWeekData() {
         const saved = JSON.parse(localStorage.getItem(`webapp4_week_${currentWeek}`));
         
-        // Reset inputs first
         document.getElementById('roll-boys').value = saved?.boys || '';
         document.getElementById('roll-girls').value = saved?.girls || '';
         
@@ -283,9 +294,22 @@
         calculate();
     }
 
-    // Refresh if Web-App 1 changes global week count
+    // NEW: Function to clear the selected week
+    function clearCurrentWeek() {
+        if(confirm(`Reset all data for Week ${currentWeek}?`)) {
+            localStorage.removeItem(`webapp4_week_${currentWeek}`);
+            loadWeekData();
+        }
+    }
+
     window.addEventListener('storage', (e) => {
-        if (e.key === 'attendance_global_weeks') initWeekNav();
+        if (e.key === 'attendance_global_weeks' || e.key === null) {
+            initWeekNav();
+            loadWeekData();
+        }
+        if (e.key === `webapp4_week_${currentWeek}` && e.newValue === null) {
+            loadWeekData();
+        }
     });
 
     window.onload = () => {

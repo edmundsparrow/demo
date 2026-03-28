@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Ledger — GNOKE Attendance</title>
+    <title>GNOKE Attendance</title>
     <style>
         :root {
             --primary: #1a2e21;
@@ -127,7 +127,7 @@
     <header>
         <div>
             <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
-            <h1 style="margin: 0; font-size: 20px;">Student Ledger</h1>
+            <h1 style="margin: 0; font-size: 20px;">Student List</h1>
         </div>
         <div style="background: #fef3c7; border-radius: 50%; padding: 4px; cursor: pointer;">🌙</div>
     </header>
@@ -143,7 +143,7 @@
                     <button class="toolbar-btn" onclick="addStudent()" style="color: #1d4ed8;">S+</button>
                     <button class="toolbar-btn" onclick="removeLastStudent()" style="color: #b91c1c;">S-</button>
                 </div>
-                <button class="toolbar-btn" onclick="clearAll()">Reset</button>
+                <button class="toolbar-btn" onclick="clearAll()" style="color: #b91c1c;">Reset</button>
                 <div class="relative">
                     <button id="gender-btn" class="toolbar-btn" onclick="event.stopPropagation(); toggleDropdown()" style="min-width: 90px;">Select ▾</button>
                     <div id="gender-dropdown" class="dropdown">
@@ -175,7 +175,6 @@
     const headerRow = document.getElementById('header-row');
     const termHeader = document.getElementById('term-total-header');
     
-    // Shared week count logic
     let currentGender = localStorage.getItem('last_gender') || 'male';
 
     function getGlobalWeekCount() {
@@ -213,11 +212,8 @@
 
     function refreshTableStructure() {
         const targetWeeks = getGlobalWeekCount();
-        
-        // Clear existing week headers
         document.querySelectorAll('.week-head').forEach(h => h.remove());
         
-        // Rebuild headers
         for(let i = 1; i <= targetWeeks; i++) {
             const th = document.createElement('th');
             th.className = "week-head";
@@ -225,7 +221,6 @@
             headerRow.insertBefore(th, termHeader);
         }
 
-        // Adjust every row's cells
         document.querySelectorAll('.student-row').forEach(row => {
             const currentCells = row.querySelectorAll('.week-cell');
             const diff = targetWeeks - currentCells.length;
@@ -240,7 +235,7 @@
             } else if (diff < 0) {
                 for(let i=0; i < Math.abs(diff); i++) {
                     const cells = row.querySelectorAll('.week-cell');
-                    row.removeChild(cells[cells.length - 1]);
+                    if(cells.length > 0) row.removeChild(cells[cells.length - 1]);
                 }
             }
             calculateRow(row);
@@ -254,11 +249,12 @@
         const targetWeeks = getGlobalWeekCount();
         
         for(let i=0; i < targetWeeks; i++) {
-            weeksHtml += `<td class="week-cell"><input type="number" value="${data?.weeks?.[i] || ''}" oninput="validateAndCalc(this)"></td>`;
+            const val = data?.weeks?.[i] || '';
+            weeksHtml += `<td class="week-cell"><input type="number" value="${val}" oninput="validateAndCalc(this)"></td>`;
         }
         
         tr.innerHTML = `
-            <td style="background: #f9fafb; font-weight: bold; color: #9ca3af;">${index}</td>
+            <td class="s-no" style="background: #f9fafb; font-weight: bold; color: #9ca3af;">${index}</td>
             <td class="name-cell"><input type="text" value="${data?.name || ''}" oninput="saveData()" style="text-align: left; padding-left: 12px;"></td>
             ${weeksHtml}
             <td class="term-total" style="font-weight: bold;">0</td>
@@ -305,9 +301,7 @@
     }
 
     function saveData() {
-        const data = { 
-            students: [] 
-        };
+        const data = { students: [] };
         document.querySelectorAll('.student-row').forEach(row => {
             data.students.push({
                 name: row.querySelector('.name-cell input').value,
@@ -325,11 +319,19 @@
         
         if (raw) {
             const data = JSON.parse(raw);
-            data.students.forEach(s => addStudent(s));
+            data.students.forEach((s, i) => addStudent(s));
         } else {
             for(let i=0; i<5; i++) addStudent();
         }
-        applyTheme();
+    }
+
+    // NEW: Clear function to wipe current memory
+    function clearAll() {
+        if(confirm("Are you sure you want to clear all data for this gender?")) {
+            localStorage.removeItem(`ledger_${currentGender}`);
+            localStorage.setItem('attendance_global_weeks', 2);
+            loadData();
+        }
     }
 
     window.onload = () => {
@@ -340,3 +342,5 @@
     <script src="hmenu.js"></script>
 </body>
 </html>
+
+    
