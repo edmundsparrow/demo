@@ -1,1 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — GNOKE Attendance</title>
+  <style>
+    :root {
+      --primary:   #1a2e21;
+      --emerald:   #065f46;
+      --emerald2:  #34d399;
+      --gray-bg:   #f0f4f1;
+      --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
 
+    body {
+      background-color: var(--gray-bg);
+      color: #1f2937;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding-bottom: 4rem;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    main {
+      padding: 1.5rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      border: 1px solid #e5e7eb;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-body {
+      font-size: 13px;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+
+    .card-body strong { color: #1f2937; }
+
+    /* Tech table */
+    .tech-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tech-table td {
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      color: #6b7280;
+    }
+    .tech-table td:first-child {
+      font-weight: 800;
+      color: #374151;
+      width: 40%;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-right: 12px;
+    }
+    .tech-table tr:last-child td { border-bottom: none; }
+
+    /* Author links */
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1.5px solid var(--emerald);
+      color: var(--emerald);
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .link-btn:hover { background: #ecfdf5; }
+
+    /* ── Update card ── */
+    #update-card { transition: border-color 0.3s; }
+    #update-card.has-update { border-color: var(--emerald2); }
+
+    #btn-check-update {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 1rem;
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      font-size: 12px;
+      font-weight: 800;
+      color: #374151;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    #btn-check-update:hover { border-color: var(--emerald2); background: #f0fdf4; color: var(--emerald); }
+    #btn-check-update:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .upd-spinner {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border: 2px solid #e5e7eb;
+      border-top-color: var(--emerald2);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .upd-result {
+      margin-top: 1rem;
+      animation: slideIn 0.22s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .upd-badge {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid;
+    }
+    .upd-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+    .upd-badge > div { display: flex; flex-direction: column; gap: 3px; }
+    .upd-badge strong { font-size: 13px; font-weight: 700; color: #1f2937; }
+    .upd-meta { font-size: 11px; color: #6b7280; }
+    .upd-link {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--emerald);
+      text-decoration: none;
+    }
+    .upd-link:hover { opacity: 0.75; }
+
+    .upd-ok  { background: #f0fdf4; border-color: rgba(6,95,70,0.2); }
+    .upd-new { background: #ecfdf5; border-color: var(--emerald2); }
+    .upd-err { background: #fef2f2; border-color: rgba(220,38,38,0.25); }
+
+    /* Reload now — only shown when SW is waiting */
+    #btn-reload-now {
+      display: none;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--emerald);
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: background 0.15s;
+    }
+    #btn-reload-now.visible { display: block; }
+    #btn-reload-now:hover { background: #054535; }
+
+    /* Pulse badge in header */
+    #update-pulse {
+      display: none;
+      background: var(--emerald2);
+      color: var(--primary);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      animation: pulse 2s infinite;
+    }
+    #update-pulse.visible { display: inline-block; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
+      <h1 style="margin: 0; font-size: 18px;">About</h1>
+    </div>
+    <!-- Pulsing badge when an update is waiting — sits right of header -->
+    <span id="update-pulse">Update ready</span>
+  </header>
+
+  <main>
+    <div class="analysis-grid">
+
+      <!-- App description -->
+      <div class="card">
+        <div class="card-label">📋 Gnoke Attendance</div>
+        <div class="card-body">
+          A modular class register for <strong>termly attendance tracking</strong>.
+          Record individual student presence, aggregate weekly data, run term
+          analysis, and manage daily AM/PM sessions — all offline.<br /><br />
+          Your data never leaves your device. No account. No server. No tracking.
+        </div>
+      </div>
+
+      <!-- Tech stack -->
+      <div class="card">
+        <div class="card-label">⚙️ Under The Hood</div>
+        <table class="tech-table">
+          <tbody>
+            <tr><td>Storage</td><td>localStorage</td></tr>
+            <tr><td>Network</td><td>None required</td></tr>
+            <tr><td>Offline</td><td>Service Worker (PWA)</td></tr>
+            <tr><td>Stack</td><td>HTML · CSS · Vanilla JS</td></tr>
+            <tr><td>Version</td><td>v1.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Author — spans full width -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-label">👤 Author</div>
+        <div class="card-body">
+          <strong>Edmund Sparrow</strong><br />
+          Part of the <strong>Gnoke Suite</strong> — offline-first tools for
+          developers, retailers, and independent builders.
+        </div>
+        <div class="link-row">
+          <a class="link-btn" href="mailto:edmundsparrow@gmail.com">✉ Email</a>
+          <a class="link-btn" href="https://github.com/edmundsparrow" target="_blank" rel="noopener">⌥ GitHub</a>
+          <a class="link-btn" href="https://selar.com/showlove/edmundsparrow" target="_blank" rel="noopener">❤️ Coffee</a>
+        </div>
+      </div>
+
+      <!-- Update card — spans full width -->
+      <div class="card" id="update-card" style="grid-column: 1 / -1;">
+        <div class="card-label">🔄 Updates</div>
+        <div class="card-body">
+          Running <strong>v1.0</strong>.
+          Click below to check GitHub for a newer version. If an update has already
+          downloaded in the background, a <strong>Reload Now</strong> button will
+          appear to apply it instantly — no re-download needed.
+        </div>
+        <button id="btn-check-update">🔄 Check for Updates</button>
+        <!-- JS injects .upd-result badge here -->
+        <button id="btn-reload-now">⚡ Reload Now — Apply Update</button>
+      </div>
+
+      <!-- License — spans full width -->
+      <div class="card" style="grid-column: 1 / -1;" hidden>
+        <div class="card-label">📜 License</div>
+        <div class="card-body">
+          Free and open source under the <strong>GNU General Public License v3.0</strong>.<br /><br />
+          Use it, modify it, share it — but keep it open.
+          Commercial use requires explicit permission from the author.<br /><br />
+          <span style="font-size: 11px; color: #9ca3af; font-weight: 600;">
+            © 2026 Edmund Sparrow — Gnoke Suite
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+  /* ══════════════════════════════════════════════════════════════
+     SW UPDATE SYSTEM
+     ─────────────────────────────────────────────────────────────
+     1. initSW(): on load, check if a SW is already waiting.
+        If yes → show Reload Now immediately.
+     2. btnCheck click: call reg.update() (forces browser to re-fetch
+        sw.js from network) + fetch GitHub README for version compare.
+     3. New SW reaches "waiting": show Reload Now.
+     4. btnReload click: post SKIP_WAITING → SW activates → reload.
+        The SW's activate handler clears old caches + claims all clients.
+  ══════════════════════════════════════════════════════════════ */
+
+  const REPO_OWNER  = 'edmundsparrow';
+  const REPO_NAME   = 'gnoke-attendance';
+  const APP_VERSION = 'v1.0';
+
+  let _waitingSW = null;
+
+  const btnCheck   = document.getElementById('btn-check-update');
+  const btnReload  = document.getElementById('btn-reload-now');
+  const updateCard = document.getElementById('update-card');
+  const pulse      = document.getElementById('update-pulse');
+
+  /* ── 1. Detect waiting SW on page load ── */
+  async function initSW() {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration('../sw.js');
+    if (!reg) return;
+
+    if (reg.waiting) {
+      onUpdateReady(reg.waiting);
+    }
+
+    reg.addEventListener('updatefound', () => {
+      const sw = reg.installing;
+      if (!sw) return;
+      sw.addEventListener('statechange', () => {
+        if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+          onUpdateReady(sw);
+        }
+      });
+    });
+  }
+
+  function onUpdateReady(sw) {
+    _waitingSW = sw;
+    btnReload.classList.add('visible');
+    updateCard.classList.add('has-update');
+    pulse.classList.add('visible');
+    renderResult({ status: 'sw-ready' });
+  }
+
+  /* ── 2. Reload Now ── */
+  btnReload.addEventListener('click', () => {
+    if (!_waitingSW) { window.location.reload(); return; }
+    _waitingSW.postMessage({ type: 'SKIP_WAITING' });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  });
+
+  /* ── 3. Check for Updates button ── */
+  btnCheck.addEventListener('click', async () => {
+    setBtnLoading(true);
+
+    // Force browser to re-fetch sw.js from the network
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration('../sw.js');
+        if (reg) await reg.update();
+      } catch (_) {}
+    }
+
+    // Fetch README from GitHub and compare version string
+    try {
+      const latest  = await fetchLatestVersion();
+      const isNewer = semverGt(latest, APP_VERSION);
+
+      if (_waitingSW) {
+        renderResult({ status: 'sw-ready' });
+      } else if (isNewer) {
+        renderResult({ status: 'update-available', latest });
+      } else {
+        renderResult({ status: 'up-to-date', latest });
+      }
+    } catch (err) {
+      if (_waitingSW) {
+        renderResult({ status: 'sw-ready' });
+      } else {
+        renderResult({ status: 'error' });
+      }
+    }
+
+    setBtnLoading(false);
+  });
+
+  /* ── Fetch version from GitHub README ── */
+  async function fetchLatestVersion() {
+    const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/README.md`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const m = text.match(/\bv(\d+\.\d+(?:\.\d+)?)\b/i);
+    if (!m) throw new Error('No version in README');
+    return `v${m[1]}`;
+  }
+
+  /* ── Semver: is a newer than b? ── */
+  function semverGt(a, b) {
+    const p = s => String(s).replace(/^v/i, '').split('.').map(n => parseInt(n) || 0);
+    const [av, bv] = [p(a), p(b)];
+    for (let i = 0; i < 3; i++) {
+      if ((av[i]||0) > (bv[i]||0)) return true;
+      if ((av[i]||0) < (bv[i]||0)) return false;
+    }
+    return false;
+  }
+
+  /* ── Render result badge inside the update card ── */
+  function renderResult({ status, latest }) {
+    updateCard.querySelector('.upd-result')?.remove();
+    const div = document.createElement('div');
+    div.className = 'upd-result';
+
+    if (status === 'up-to-date') {
+      div.innerHTML = `
+        <div class="upd-badge upd-ok">
+          <span class="upd-icon">✅</span>
+          <div>
+            <strong>You're up to date</strong>
+            <span class="upd-meta">Running ${APP_VERSION} — latest is ${latest}</span>
+          </div>
+        </div>`;
+    } else if (status === 'update-available') {
+      div.innerHTML = `
+        <div class="upd-badge upd-new">
+          <span class="upd-icon">🚀</span>
+          <div>
+            <strong>Update available: ${latest}</strong>
+            <span class="upd-meta">You're on ${APP_VERSION}. The browser will download it in the background — come back here to apply it.</span>
+            <a class="upd-link" href="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases" target="_blank" rel="noopener">View release →</a>
+          </div>
+        </div>`;
+    } else if (status === 'sw-ready') {
+      div.innerHTML = `
+        <div class="upd-badge upd-new">
+          <span class="upd-icon">⚡</span>
+          <div>
+            <strong>Update installed &amp; waiting</strong>
+            <span class="upd-meta">Click Reload Now to apply the new version.</span>
+          </div>
+        </div>`;
+      btnReload.classList.add('visible');
+      updateCard.classList.add('has-update');
+      pulse.classList.add('visible');
+    } else {
+      div.innerHTML = `
+        <div class="upd-badge upd-err">
+          <span class="upd-icon">⚠️</span>
+          <div>
+            <strong>Couldn't check for updates</strong>
+            <span class="upd-meta">No internet connection or repo unavailable.</span>
+          </div>
+        </div>`;
+    }
+
+    // Insert result between the check button and the reload button
+    btnReload.insertAdjacentElement('beforebegin', div);
+  }
+
+  /* ── Button loading state ── */
+  function setBtnLoading(on) {
+    btnCheck.disabled = on;
+    btnCheck.innerHTML = on
+      ? `<span class="upd-spinner"></span> Checking…`
+      : `🔄 Check for Updates`;
+  }
+
+  initSW();
+  </script>
+
+  <!-- hmenu injects the ☰ hamburger into the header and the slide-out drawer -->
+  <script src="../hmenu.js"></script>
+
+</body>
+</html>
