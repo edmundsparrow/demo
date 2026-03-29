@@ -1,1 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Register — GNOKE Attendance</title>
+    <style>
+        :root {
+            --primary: #1a2e21;
+            --emerald: #065f46;
+            --blue: #2563eb;
+            --pink: #db2777;
+            --gray-bg: #f0f4f1;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
 
+        body { 
+            background-color: var(--gray-bg); 
+            color: #1f2937; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0;
+            padding-bottom: 3rem;
+        }
+
+        header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 1rem 1.5rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+
+        .week-action-bar {
+            background: white;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .week-action-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .reset-btn:hover { background: #fef2f2; }
+
+        .week-nav {
+            background: white;
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .week-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .week-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        main { padding: 1.5rem; max-width: 800px; margin: auto; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            border-bottom: 4px solid #e5e7eb;
+        }
+
+        .stat-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+        
+        .stat-input {
+            width: 80%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--primary);
+            outline: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e5e7eb;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        thead { background: var(--primary); color: white; }
+        th { padding: 12px; font-size: 11px; letter-spacing: 1px; }
+        td { border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; padding: 0; }
+
+        .day-label { font-weight: 800; color: #64748b; background: #f8fafc; width: 80px; }
+        
+        input.session-input {
+            width: 100%;
+            border: none;
+            padding: 15px 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+            background: transparent;
+        }
+
+        .total-row { background: #f8fafc; font-weight: 900; color: var(--primary); }
+        .total-row td { padding: 15px; }
+
+        .percentage-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            margin-top: 2rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e5e7eb;
+        }
+
+        .percent-box {
+            display: inline-block;
+            background: var(--emerald);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 12px;
+            font-size: 32px;
+            font-weight: 900;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
+        <h1 id="header-title" style="margin: 0; font-size: 18px;">Session Register: Week 1</h1>
+    </div>
+</header>
+
+<nav class="week-nav" id="week-tabs"></nav>
+
+<div class="week-action-bar">
+    <span id="action-week-label" class="week-action-label">Week 1</span>
+    <button class="reset-btn" onclick="clearCurrentWeek()">Reset Week</button>
+</div>
+
+<main>
+    <div class="stats-grid">
+        <div class="stat-card" style="border-color: var(--blue);">
+            <div class="stat-label">Boys on Roll</div>
+            <input type="number" id="roll-boys" class="stat-input" placeholder="0" oninput="calculate()">
+        </div>
+        <div class="stat-card" style="border-color: var(--pink);">
+            <div class="stat-label">Girls on Roll</div>
+            <input type="number" id="roll-girls" class="stat-input" placeholder="0" oninput="calculate()">
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total on Roll</div>
+            <div id="total-roll-val" style="font-size: 24px; font-weight: 900; padding-top: 5px;">0</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Morning (M)</th>
+                    <th>Afternoon (A)</th>
+                </tr>
+            </thead>
+            <tbody id="session-body">
+                <tr><td class="day-label">M</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
+                <tr><td class="day-label">T</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
+                <tr><td class="day-label">W</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
+                <tr><td class="day-label">TH</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
+                <tr><td class="day-label">F</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
+                <tr class="total-row">
+                    <td>WEEKLY TOTAL</td>
+                    <td id="total-m">0</td>
+                    <td id="total-a">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="percentage-section">
+        <div class="stat-label">Weekly Attendance Rate</div>
+        <div id="percent-display" class="percent-box">0.0%</div>
+        <div id="formula-text" style="margin-top: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;"></div>
+    </div>
+</main>
+
+<script>
+    let currentWeek = 1;
+
+    function initWeekNav() {
+        const totalWeeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 1;
+        const nav = document.getElementById('week-tabs');
+        nav.innerHTML = '';
+
+        for (let i = 1; i <= totalWeeks; i++) {
+            const btn = document.createElement('button');
+            btn.className = `week-btn ${i === currentWeek ? 'active' : ''}`;
+            btn.innerText = `Week ${i}`;
+            btn.onclick = () => switchWeek(i);
+            nav.appendChild(btn);
+        }
+    }
+
+    function switchWeek(weekNum) {
+        currentWeek = weekNum;
+        document.getElementById('header-title').innerText = `Session Register: Week ${weekNum}`;
+        document.getElementById('action-week-label').innerText = `Week ${weekNum}`;
+        initWeekNav();
+        loadWeekData();
+    }
+
+    function calculate() {
+        const boys = parseInt(document.getElementById('roll-boys').value) || 0;
+        const girls = parseInt(document.getElementById('roll-girls').value) || 0;
+        const totalRoll = boys + girls;
+        document.getElementById('total-roll-val').innerText = totalRoll;
+
+        let sumM = 0;
+        let sumA = 0;
+        document.querySelectorAll('.m-input').forEach(i => sumM += parseInt(i.value) || 0);
+        document.querySelectorAll('.a-input').forEach(i => sumA += parseInt(i.value) || 0);
+
+        document.getElementById('total-m').innerText = sumM;
+        document.getElementById('total-a').innerText = sumA;
+
+        const totalPresence = sumM + sumA;
+        const maxPossible = totalRoll * 10;
+        
+        let percentage = 0;
+        if (maxPossible > 0) {
+            percentage = (totalPresence / maxPossible) * 100;
+        }
+
+        document.getElementById('percent-display').innerText = percentage.toFixed(1) + "%";
+        document.getElementById('formula-text').innerText = `(${totalPresence} / ${maxPossible} Possible) × 100`;
+
+        const box = document.getElementById('percent-display');
+        box.style.background = percentage >= 90 ? "var(--emerald)" : (percentage >= 70 ? "var(--blue)" : "#64748b");
+
+        saveWeekData();
+    }
+
+    function saveWeekData() {
+        const data = {
+            boys: document.getElementById('roll-boys').value,
+            girls: document.getElementById('roll-girls').value,
+            m: Array.from(document.querySelectorAll('.m-input')).map(i => i.value),
+            a: Array.from(document.querySelectorAll('.a-input')).map(i => i.value)
+        };
+        localStorage.setItem(`webapp4_week_${currentWeek}`, JSON.stringify(data));
+    }
+
+    function loadWeekData() {
+        const saved = JSON.parse(localStorage.getItem(`webapp4_week_${currentWeek}`));
+        
+        document.getElementById('roll-boys').value = saved?.boys || '';
+        document.getElementById('roll-girls').value = saved?.girls || '';
+        
+        const mIn = document.querySelectorAll('.m-input');
+        const aIn = document.querySelectorAll('.a-input');
+        
+        mIn.forEach((input, i) => input.value = saved?.m?.[i] || '');
+        aIn.forEach((input, i) => input.value = saved?.a?.[i] || '');
+        
+        calculate();
+    }
+
+    // NEW: Function to clear the selected week
+    function clearCurrentWeek() {
+        if(confirm(`Reset all data for Week ${currentWeek}?`)) {
+            localStorage.removeItem(`webapp4_week_${currentWeek}`);
+            loadWeekData();
+        }
+    }
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'attendance_global_weeks' || e.key === null) {
+            initWeekNav();
+            loadWeekData();
+        }
+        if (e.key === `webapp4_week_${currentWeek}` && e.newValue === null) {
+            loadWeekData();
+        }
+    });
+
+    window.onload = () => {
+        initWeekNav();
+        loadWeekData();
+    };
+</script>
+<script src="../hmenu.js"></script>
+</body>
+</html>
