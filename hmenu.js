@@ -1,19 +1,21 @@
 /**
  * hmenu.js — Shared Navigation for GNOKE College Attendance Register
- * Inject via <script src="hmenu.js"></script> in each page's <body>
+ * Inject via <script src="../hmenu.js"></script> in each page's <body>
  */
 
 (function () {
   const PAGES = [
-    { id: 1, file: "attendance1.html", label: "Student Ledger",    icon: "📋", sub: "Individual records" },
-    { id: 2, file: "attendance2.html", label: "Weekly Register",   icon: "📅", sub: "Class presence by week" },
-    { id: 3, file: "attendance3.html", label: "Term Analysis",     icon: "📊", sub: "Master analytics" },
-    { id: 4, file: "attendance4.html", label: "Session Register",  icon: "🕐", sub: "Daily AM/PM sessions" },
+    { id: 1, file: "attendance1", label: "Student Register",   icon: "📋", sub: "Individual records" },
+    { id: 2, file: "attendance2", label: "Weekly Register",    icon: "📅", sub: "Class presence by week" },
+    { id: 3, file: "attendance3", label: "Term Analysis",      icon: "📊", sub: "Master analytics" },
+    { id: 4, file: "attendance4", label: "Session Register",   icon: "🕐", sub: "Daily AM/PM sessions" },
+    { id: 5, file: "about",       label: "About",              icon: "ℹ️",  sub: "App info & updates" },
   ];
 
-  // Detect which page we're on by filename
-  const currentFile = window.location.pathname.split("/").pop() || "attendance1.html";
-  const currentPage = PAGES.find(p => p.file === currentFile) || PAGES[0];
+  // Detect current page from the folder name in the URL path
+  // e.g. /attendance2/ → "attendance2"  |  /about/ → "about"
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const currentFile = pathParts[pathParts.length - 1] || "attendance1";
 
   // ─── Inject CSS ───────────────────────────────────────────────────────────
   const style = document.createElement("style");
@@ -107,9 +109,14 @@
 
     .hmenu-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
 
-    .hmenu-text {}
     .hmenu-item-label { font-size: 13px; font-weight: 700; display: block; }
     .hmenu-item-sub   { font-size: 10px; font-weight: 500; margin-top: 1px; opacity: 0.6; display: block; }
+
+    .hmenu-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 6px 16px;
+    }
 
     .hmenu-footer {
       padding: 1rem 1.2rem;
@@ -127,6 +134,10 @@
   overlay.className = "hmenu-overlay";
   overlay.onclick = close;
 
+  // Separate main pages from utility pages (About) with a divider
+  const mainPages    = PAGES.filter(p => p.id <= 4);
+  const utilityPages = PAGES.filter(p => p.id >= 5);
+
   const drawer = document.createElement("div");
   drawer.className = "hmenu-drawer";
   drawer.innerHTML = `
@@ -135,8 +146,18 @@
       <div class="hmenu-app-name">Attendance Register</div>
     </div>
     <nav class="hmenu-nav">
-      ${PAGES.map(p => `
-        <a class="hmenu-item ${p.file === currentFile ? 'active' : ''}" href="${p.file}">
+      ${mainPages.map(p => `
+        <a class="hmenu-item ${p.file === currentFile ? 'active' : ''}" href="../${p.file}/">
+          <span class="hmenu-icon">${p.icon}</span>
+          <span class="hmenu-text">
+            <span class="hmenu-item-label">${p.label}</span>
+            <span class="hmenu-item-sub">${p.sub}</span>
+          </span>
+        </a>
+      `).join("")}
+      <hr class="hmenu-divider" />
+      ${utilityPages.map(p => `
+        <a class="hmenu-item ${p.file === currentFile ? 'active' : ''}" href="../${p.file}/">
           <span class="hmenu-icon">${p.icon}</span>
           <span class="hmenu-text">
             <span class="hmenu-item-label">${p.label}</span>
@@ -156,7 +177,6 @@
     const header = document.querySelector("header");
     if (!header) return;
 
-    // Make header flex if not already
     header.style.display = "flex";
     header.style.alignItems = "center";
 
