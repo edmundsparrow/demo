@@ -29,6 +29,8 @@ const ASSETS = [
   './attendance3/index.html',
   './attendance4/',
   './attendance4/index.html',
+  './about/',
+  './about/index.html',
 
   /* Shared JS */
   './hmenu.js',
