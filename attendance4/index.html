@@ -6,31 +6,62 @@
     <title>Session Register — GNOKE Attendance</title>
     <style>
         :root {
-            --primary: #1a2e21;
-            --emerald: #065f46;
-            --blue: #2563eb;
-            --pink: #db2777;
-            --gray-bg: #f0f4f1;
+            --primary:    #1a2e21;
+            --emerald:    #065f46;
+            --emerald2:   #34d399;
+            --blue:       #2563eb;
+            --pink:       #db2777;
+            --gray-bg:    #f0f4f1;
             --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        body { 
-            background-color: var(--gray-bg); 
-            color: #1f2937; 
-            font-family: system-ui, -apple-system, sans-serif; 
-            margin: 0;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--gray-bg);
+            color: #1f2937;
+            font-family: system-ui, -apple-system, sans-serif;
             padding-bottom: 3rem;
         }
 
-        header { 
-            background: var(--primary); 
-            color: white; 
-            padding: 1rem 1.5rem; 
-            display: flex; 
-            justify-content: space-between; 
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
+        /* ── Week tabs ── */
+        .week-nav {
+            background: white;
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .week-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            color: #64748b;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .week-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ── Action bar ── */
         .week-action-bar {
             background: white;
             padding: 10px 16px;
@@ -39,7 +70,6 @@
             align-items: center;
             border-bottom: 1px solid #e5e7eb;
         }
-
         .week-action-label {
             font-size: 12px;
             font-weight: 800;
@@ -47,7 +77,6 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
-
         .reset-btn {
             background: transparent;
             color: #ef4444;
@@ -59,47 +88,19 @@
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            transition: background 0.15s, color 0.15s;
+            transition: background 0.15s;
         }
-
         .reset-btn:hover { background: #fef2f2; }
-
-        .week-nav {
-            background: white;
-            padding: 10px;
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            border-bottom: 1px solid #e5e7eb;
-            white-space: nowrap;
-        }
-
-        .week-btn {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 1px solid #e5e7eb;
-            background: white;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            color: #64748b;
-        }
-
-        .week-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
 
         main { padding: 1.5rem; max-width: 800px; margin: auto; }
 
+        /* ── Roll stats ── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-
         .stat-card {
             background: white;
             padding: 1rem;
@@ -108,21 +109,21 @@
             text-align: center;
             border-bottom: 4px solid #e5e7eb;
         }
-
-        .stat-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
-        
-        .stat-input {
-            width: 80%;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            font-size: 18px;
+        .stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 24px;
             font-weight: 900;
             color: var(--primary);
-            outline: none;
+            padding-top: 5px;
         }
 
+        /* ── Table ── */
         .table-container {
             background: white;
             border-radius: 20px;
@@ -130,28 +131,49 @@
             box-shadow: var(--card-shadow);
             border: 1px solid #e5e7eb;
         }
-
         table { width: 100%; border-collapse: collapse; text-align: center; }
         thead { background: var(--primary); color: white; }
         th { padding: 12px; font-size: 11px; letter-spacing: 1px; }
         td { border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; padding: 0; }
+        tr:last-child td { border-bottom: none; }
 
-        .day-label { font-weight: 800; color: #64748b; background: #f8fafc; width: 80px; }
-        
-        input.session-input {
+        .day-label {
+            font-weight: 800;
+            color: #64748b;
+            background: #f8fafc;
+            width: 60px;
+            padding: 15px 8px;
+        }
+
+        /* Auto-filled cells — read from attendance0 */
+        .auto-cell {
+            padding: 15px 5px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--emerald);
+            background: #f0fdf4;
+        }
+        .auto-cell.boys { color: var(--blue); background: #eff6ff; }
+        .auto-cell.girls { color: var(--pink); background: #fdf2f8; }
+        .auto-cell.zero { color: #d1d5db; background: transparent; }
+
+        /* Times open — still manual */
+        input.open-input {
             width: 100%;
             border: none;
             padding: 15px 5px;
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             outline: none;
             background: transparent;
         }
+        input.open-input:focus { background: #f8fafc; }
 
-        .total-row { background: #f8fafc; font-weight: 900; color: var(--primary); }
-        .total-row td { padding: 15px; }
+        .total-row { background: #f8fafc; }
+        .total-row td { padding: 14px 8px; font-weight: 900; color: var(--primary); }
 
+        /* ── Percentage card ── */
         .percentage-section {
             background: white;
             padding: 2rem;
@@ -161,7 +183,6 @@
             box-shadow: var(--card-shadow);
             border: 1px solid #e5e7eb;
         }
-
         .percent-box {
             display: inline-block;
             background: var(--emerald);
@@ -172,14 +193,25 @@
             font-weight: 900;
             margin-top: 10px;
         }
+
+        /* Source note */
+        .source-note {
+            font-size: 10px;
+            font-weight: 700;
+            color: #9ca3af;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <header>
     <div>
-        <small style="opacity: 0.5; font-weight: bold; letter-spacing: 2px;">GNOKE</small>
-        <h1 id="header-title" style="margin: 0; font-size: 18px;">Session Register: Week 1</h1>
+        <small style="opacity:0.5;font-weight:bold;letter-spacing:2px;">GNOKE</small>
+        <h1 id="header-title" style="margin:0;font-size:18px;">Session Register: Week 1</h1>
     </div>
 </header>
 
@@ -187,22 +219,24 @@
 
 <div class="week-action-bar">
     <span id="action-week-label" class="week-action-label">Week 1</span>
-    <button class="reset-btn" onclick="clearCurrentWeek()">Reset Week</button>
+    <button class="reset-btn" onclick="clearOpenings()">Reset Openings</button>
 </div>
 
 <main>
+
+    <!-- Roll stats — pulled from attendance0 -->
     <div class="stats-grid">
-        <div class="stat-card" style="border-color: var(--blue);">
+        <div class="stat-card" style="border-color:var(--blue);">
             <div class="stat-label">Boys on Roll</div>
-            <input type="number" id="roll-boys" class="stat-input" placeholder="0" oninput="calculate()">
+            <div id="roll-boys" class="stat-value" style="color:var(--blue);">0</div>
         </div>
-        <div class="stat-card" style="border-color: var(--pink);">
+        <div class="stat-card" style="border-color:var(--pink);">
             <div class="stat-label">Girls on Roll</div>
-            <input type="number" id="roll-girls" class="stat-input" placeholder="0" oninput="calculate()">
+            <div id="roll-girls" class="stat-value" style="color:var(--pink);">0</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total on Roll</div>
-            <div id="total-roll-val" style="font-size: 24px; font-weight: 900; padding-top: 5px;">0</div>
+            <div id="roll-total" class="stat-value">0</div>
         </div>
     </div>
 
@@ -211,136 +245,244 @@
             <thead>
                 <tr>
                     <th>Day</th>
-                    <th>Morning (M)</th>
-                    <th>Afternoon (A)</th>
+                    <th style="color:#93c5fd;">Boys Present</th>
+                    <th style="color:#f9a8d4;">Girls Present</th>
+                    <th>Times Open</th>
+                    <th style="color:var(--emerald2);">Total Present</th>
                 </tr>
             </thead>
-            <tbody id="session-body">
-                <tr><td class="day-label">M</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
-                <tr><td class="day-label">T</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
-                <tr><td class="day-label">W</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
-                <tr><td class="day-label">TH</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
-                <tr><td class="day-label">F</td><td><input type="number" class="m-input session-input" oninput="calculate()"></td><td><input type="number" class="a-input session-input" oninput="calculate()"></td></tr>
-                <tr class="total-row">
-                    <td>WEEKLY TOTAL</td>
-                    <td id="total-m">0</td>
-                    <td id="total-a">0</td>
-                </tr>
-            </tbody>
+            <tbody id="session-body"></tbody>
         </table>
     </div>
 
     <div class="percentage-section">
         <div class="stat-label">Weekly Attendance Rate</div>
         <div id="percent-display" class="percent-box">0.0%</div>
-        <div id="formula-text" style="margin-top: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;"></div>
+        <div id="formula-text" style="margin-top:15px;font-size:11px;color:#94a3b8;font-weight:600;"></div>
     </div>
+
+    <p class="source-note">✦ Boys & Girls present auto-filled from Daily Register</p>
+
 </main>
 
 <script>
-    let currentWeek = 1;
+const DAYS_LABEL = ['Mon','Tue','Wed','Thu','Fri'];
+let currentWeek = 1;
 
-    function initWeekNav() {
-        const totalWeeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 1;
-        const nav = document.getElementById('week-tabs');
-        nav.innerHTML = '';
+/* ═══════════════════════════════════════════════════════════════════
+   PULL FROM ATTENDANCE0
+   daily_register shape:
+   {
+     male:   { weeks: [ { ending, students: [{name, days:[{am,pm}×5]}] } ] },
+     female: { weeks: [ { ending, students: [{name, days:[{am,pm}×5]}] } ] }
+   }
+   For each day we sum all students' am+pm strokes (value===1 only).
+═══════════════════════════════════════════════════════════════════ */
+function getDailyTotals(weekIndex) {
+    const raw = localStorage.getItem('daily_register');
+    const dr  = raw ? JSON.parse(raw) : null;
 
-        for (let i = 1; i <= totalWeeks; i++) {
-            const btn = document.createElement('button');
-            btn.className = `week-btn ${i === currentWeek ? 'active' : ''}`;
-            btn.innerText = `Week ${i}`;
-            btn.onclick = () => switchWeek(i);
-            nav.appendChild(btn);
-        }
+    const result = {
+        boysRoll:  0,
+        girlsRoll: 0,
+        days: DAYS_LABEL.map(() => ({ boys: 0, girls: 0 }))
+    };
+
+    if (!dr) return result;
+
+    const maleWeek   = dr.male?.weeks?.[weekIndex];
+    const femaleWeek = dr.female?.weeks?.[weekIndex];
+
+    result.boysRoll  = dr.male?.weeks?.[0]?.students?.length  || 0;
+    result.girlsRoll = dr.female?.weeks?.[0]?.students?.length || 0;
+
+    // Sum strokes per day for boys
+    if (maleWeek) {
+        maleWeek.students.forEach(student => {
+            student.days.forEach((day, di) => {
+                if (day.am === 1) result.days[di].boys++;
+                if (day.pm === 1) result.days[di].boys++;
+            });
+        });
     }
 
-    function switchWeek(weekNum) {
-        currentWeek = weekNum;
-        document.getElementById('header-title').innerText = `Session Register: Week ${weekNum}`;
-        document.getElementById('action-week-label').innerText = `Week ${weekNum}`;
-        initWeekNav();
-        loadWeekData();
+    // Sum strokes per day for girls
+    if (femaleWeek) {
+        femaleWeek.students.forEach(student => {
+            student.days.forEach((day, di) => {
+                if (day.am === 1) result.days[di].girls++;
+                if (day.pm === 1) result.days[di].girls++;
+            });
+        });
     }
 
-    function calculate() {
-        const boys = parseInt(document.getElementById('roll-boys').value) || 0;
-        const girls = parseInt(document.getElementById('roll-girls').value) || 0;
-        const totalRoll = boys + girls;
-        document.getElementById('total-roll-val').innerText = totalRoll;
+    return result;
+}
 
-        let sumM = 0;
-        let sumA = 0;
-        document.querySelectorAll('.m-input').forEach(i => sumM += parseInt(i.value) || 0);
-        document.querySelectorAll('.a-input').forEach(i => sumA += parseInt(i.value) || 0);
-
-        document.getElementById('total-m').innerText = sumM;
-        document.getElementById('total-a').innerText = sumA;
-
-        const totalPresence = sumM + sumA;
-        const maxPossible = totalRoll * 10;
-        
-        let percentage = 0;
-        if (maxPossible > 0) {
-            percentage = (totalPresence / maxPossible) * 100;
-        }
-
-        document.getElementById('percent-display').innerText = percentage.toFixed(1) + "%";
-        document.getElementById('formula-text').innerText = `(${totalPresence} / ${maxPossible} Possible) × 100`;
-
-        const box = document.getElementById('percent-display');
-        box.style.background = percentage >= 90 ? "var(--emerald)" : (percentage >= 70 ? "var(--blue)" : "#64748b");
-
-        saveWeekData();
+/* ═══════════════════════════════════════════════════════════════════
+   WEEK TABS
+═══════════════════════════════════════════════════════════════════ */
+function initWeekNav() {
+    const totalWeeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 1;
+    const nav = document.getElementById('week-tabs');
+    nav.innerHTML = '';
+    for (let i = 1; i <= totalWeeks; i++) {
+        const btn = document.createElement('button');
+        btn.className = `week-btn ${i === currentWeek ? 'active' : ''}`;
+        btn.textContent = `Week ${i}`;
+        btn.onclick = () => switchWeek(i);
+        nav.appendChild(btn);
     }
+}
 
-    function saveWeekData() {
-        const data = {
-            boys: document.getElementById('roll-boys').value,
-            girls: document.getElementById('roll-girls').value,
-            m: Array.from(document.querySelectorAll('.m-input')).map(i => i.value),
-            a: Array.from(document.querySelectorAll('.a-input')).map(i => i.value)
-        };
-        localStorage.setItem(`webapp4_week_${currentWeek}`, JSON.stringify(data));
-    }
+function switchWeek(n) {
+    currentWeek = n;
+    document.getElementById('header-title').textContent  = `Session Register: Week ${n}`;
+    document.getElementById('action-week-label').textContent = `Week ${n}`;
+    initWeekNav();
+    render();
+}
 
-    function loadWeekData() {
-        const saved = JSON.parse(localStorage.getItem(`webapp4_week_${currentWeek}`));
-        
-        document.getElementById('roll-boys').value = saved?.boys || '';
-        document.getElementById('roll-girls').value = saved?.girls || '';
-        
-        const mIn = document.querySelectorAll('.m-input');
-        const aIn = document.querySelectorAll('.a-input');
-        
-        mIn.forEach((input, i) => input.value = saved?.m?.[i] || '');
-        aIn.forEach((input, i) => input.value = saved?.a?.[i] || '');
-        
-        calculate();
-    }
+/* ═══════════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════════ */
+function render() {
+    const totals  = getDailyTotals(currentWeek - 1);
+    const openings = loadOpenings();
 
-    // NEW: Function to clear the selected week
-    function clearCurrentWeek() {
-        if(confirm(`Reset all data for Week ${currentWeek}?`)) {
-            localStorage.removeItem(`webapp4_week_${currentWeek}`);
-            loadWeekData();
-        }
-    }
+    // Roll stats
+    document.getElementById('roll-boys').textContent  = totals.boysRoll;
+    document.getElementById('roll-girls').textContent = totals.girlsRoll;
+    document.getElementById('roll-total').textContent = totals.boysRoll + totals.girlsRoll;
 
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'attendance_global_weeks' || e.key === null) {
-            initWeekNav();
-            loadWeekData();
-        }
-        if (e.key === `webapp4_week_${currentWeek}` && e.newValue === null) {
-            loadWeekData();
-        }
+    const tbody = document.getElementById('session-body');
+    tbody.innerHTML = '';
+
+    let sumBoys = 0, sumGirls = 0, sumOpen = 0;
+
+    DAYS_LABEL.forEach((day, di) => {
+        const boys  = totals.days[di].boys;
+        const girls = totals.days[di].girls;
+        const open  = openings[di] || '';
+        const total = boys + girls;
+
+        sumBoys  += boys;
+        sumGirls += girls;
+        sumOpen  += parseInt(open) || 0;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="day-label">${day}</td>
+            <td class="auto-cell boys ${boys === 0 ? 'zero' : ''}">${boys || ''}</td>
+            <td class="auto-cell girls ${girls === 0 ? 'zero' : ''}">${girls || ''}</td>
+            <td><input type="number" class="open-input"
+                       value="${open}"
+                       data-di="${di}"
+                       oninput="onOpeningInput(this)"
+                       placeholder="—" /></td>
+            <td class="auto-cell ${total === 0 ? 'zero' : ''}">${total || ''}</td>
+        `;
+        tbody.appendChild(tr);
     });
 
-    window.onload = () => {
-        initWeekNav();
-        loadWeekData();
+    // Totals row
+    const totalPresent = sumBoys + sumGirls;
+    tbody.innerHTML += `
+        <tr class="total-row">
+            <td>TOTAL</td>
+            <td style="color:var(--blue);">${sumBoys || ''}</td>
+            <td style="color:var(--pink);">${sumGirls || ''}</td>
+            <td>${sumOpen || ''}</td>
+            <td style="color:var(--emerald);">${totalPresent || ''}</td>
+        </tr>`;
+
+    // Percentage
+    const totalRoll   = totals.boysRoll + totals.girlsRoll;
+    const maxPossible = totalRoll * sumOpen;
+    const percentage  = maxPossible > 0
+        ? ((totalPresent / maxPossible) * 100).toFixed(1)
+        : '0.0';
+
+    const box = document.getElementById('percent-display');
+    box.textContent = percentage + '%';
+    box.style.background =
+        parseFloat(percentage) >= 90 ? 'var(--emerald)' :
+        parseFloat(percentage) >= 70 ? 'var(--blue)' : '#64748b';
+
+    document.getElementById('formula-text').textContent =
+        `(${totalPresent} present / ${maxPossible} possible) × 100`;
+
+    // Persist summary for attendance3
+    pushSummary(totalPresent, sumOpen);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   OPENINGS — only manual input, persisted per week
+═══════════════════════════════════════════════════════════════════ */
+function openingsKey() { return `session4_openings_w${currentWeek}`; }
+
+function loadOpenings() {
+    const raw = localStorage.getItem(openingsKey());
+    return raw ? JSON.parse(raw) : [10, 10, 10, 10, 10];
+}
+
+function saveOpenings() {
+    const inputs = document.querySelectorAll('.open-input');
+    const vals = Array.from(inputs).map(i => i.value);
+    localStorage.setItem(openingsKey(), JSON.stringify(vals));
+}
+
+function onOpeningInput(input) {
+    saveOpenings();
+    render();
+}
+
+function clearOpenings() {
+    if (!confirm(`Reset Times Open for Week ${currentWeek}?`)) return;
+    localStorage.removeItem(openingsKey());
+    render();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PUSH SUMMARY → attendance3
+   Keeps attendance_summary_data compatible with existing attendance3
+═══════════════════════════════════════════════════════════════════ */
+function pushSummary(totalPresent, totalOpen) {
+    const weeks    = parseInt(localStorage.getItem('attendance_global_weeks')) || 1;
+    const existing = JSON.parse(localStorage.getItem('attendance_summary_data') || '[]');
+
+    // Ensure array is long enough
+    while (existing.length < weeks) existing.push({ w: existing.length + 1, o: 10 });
+
+    existing[currentWeek - 1] = {
+        w: currentWeek,
+        o: totalOpen,
+        present: totalPresent
     };
+
+    localStorage.setItem('attendance_summary_data', JSON.stringify(existing));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIVE SYNC — re-render when attendance0 updates
+═══════════════════════════════════════════════════════════════════ */
+window.addEventListener('storage', e => {
+    if (e.key === 'daily_register' || e.key === 'attendance_global_weeks') {
+        initWeekNav();
+        render();
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════════════ */
+window.onload = () => {
+    initWeekNav();
+    render();
+};
 </script>
+
 <script src="../hmenu.js"></script>
 </body>
 </html>
+    
