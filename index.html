@@ -192,15 +192,23 @@
   <div class="mid">
     <p class="desc">
       A modular class register for <strong>termly attendance</strong> —
-      track students, weekly presence, daily sessions, and
-      <strong>term analytics</strong> all in one place.
+      mark daily presence, track weekly totals, review session data, and
+      <strong>analyse the full term</strong> all in one place.
     </p>
 
     <div class="modules">
+      <a class="module" href="attendance0/" onclick="navigate(event, this)">
+        <span class="module-icon">✏️</span>
+        <span class="module-body">
+          <span class="module-label">Module 1</span>
+          <span class="module-name">Daily Register</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
       <a class="module" href="attendance1/" onclick="navigate(event, this)">
         <span class="module-icon">📋</span>
         <span class="module-body">
-          <span class="module-label">Module 1</span>
+          <span class="module-label">Module 2</span>
           <span class="module-name">Student Register</span>
         </span>
         <span class="module-arrow">→</span>
@@ -208,16 +216,8 @@
       <a class="module" href="attendance2/" onclick="navigate(event, this)">
         <span class="module-icon">📅</span>
         <span class="module-body">
-          <span class="module-label">Module 2</span>
-          <span class="module-name">Weekly Register</span>
-        </span>
-        <span class="module-arrow">→</span>
-      </a>
-      <a class="module" href="attendance3/" onclick="navigate(event, this)">
-        <span class="module-icon">📊</span>
-        <span class="module-body">
           <span class="module-label">Module 3</span>
-          <span class="module-name">Term Analysis</span>
+          <span class="module-name">Weekly Register</span>
         </span>
         <span class="module-arrow">→</span>
       </a>
@@ -229,12 +229,20 @@
         </span>
         <span class="module-arrow">→</span>
       </a>
+      <a class="module" href="attendance3/" onclick="navigate(event, this)">
+        <span class="module-icon">📊</span>
+        <span class="module-body">
+          <span class="module-label">Module 5</span>
+          <span class="module-name">Term Analysis</span>
+        </span>
+        <span class="module-arrow">→</span>
+      </a>
     </div>
   </div>
 
   <!-- CTA -->
   <div class="bottom">
-    <a class="enter-btn" href="attendance1/" onclick="go(event)">
+    <a class="enter-btn" href="attendance0/" onclick="go(event)">
       Open Register <span class="arrow">→</span>
     </a>
     <div class="skip-row">
@@ -247,7 +255,7 @@
 
 <script>
   const KEY = 'gnoke_attendance_skip_intro';
-  const DEST = 'attendance1/';
+  const DEST = 'attendance0/';
 
   // Auto-skip if opted in
   if (localStorage.getItem(KEY) === '1') window.location.replace(DEST);
