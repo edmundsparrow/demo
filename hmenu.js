@@ -5,17 +5,18 @@
 
 (function () {
   const PAGES = [
-    { id: 1, file: "attendance1", label: "Student Register",   icon: "📋", sub: "Individual records" },
-    { id: 2, file: "attendance2", label: "Weekly Register",    icon: "📅", sub: "Class presence by week" },
-    { id: 3, file: "attendance3", label: "Term Analysis",      icon: "📊", sub: "Master analytics" },
-    { id: 4, file: "attendance4", label: "Session Register",   icon: "🕐", sub: "Daily AM/PM sessions" },
-    { id: 5, file: "about",       label: "About",              icon: "ℹ️",  sub: "App info & updates" },
+    { id: 0, file: "attendance0", label: "Daily Register",    icon: "✏️",  sub: "Mark daily attendance" },
+    { id: 1, file: "attendance1", label: "Student Register",  icon: "📋", sub: "Weekly totals per student" },
+    { id: 2, file: "attendance2", label: "Weekly Register",   icon: "📅", sub: "Class presence by week" },
+    { id: 3, file: "attendance3", label: "Term Analysis",     icon: "📊", sub: "Master analytics" },
+    { id: 4, file: "attendance4", label: "Session Register",  icon: "🕐", sub: "Daily AM/PM sessions" },
+    { id: 5, file: "about",       label: "About",             icon: "ℹ️",  sub: "App info & updates" },
   ];
 
   // Detect current page from the folder name in the URL path
   // e.g. /attendance2/ → "attendance2"  |  /about/ → "about"
   const pathParts = window.location.pathname.split("/").filter(Boolean);
-  const currentFile = pathParts[pathParts.length - 1] || "attendance1";
+  const currentFile = pathParts[pathParts.length - 1] || "attendance0";
 
   // ─── Inject CSS ───────────────────────────────────────────────────────────
   const style = document.createElement("style");
