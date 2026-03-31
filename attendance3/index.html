@@ -33,10 +33,6 @@
 
         main { padding: 1.5rem; max-width: 900px; margin: auto; }
 
-        .hero-section { margin-bottom: 2rem; }
-        .hero-title { font-size: 24px; font-weight: 800; margin: 0; color: var(--primary); }
-        .hero-sub { font-size: 13px; color: #6b7280; font-weight: 500; }
-
         .analysis-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -92,6 +88,15 @@
 
         .gender-stat-val { font-size: 40px; font-weight: 900; }
 
+        .source-note {
+            margin-top: 1.5rem;
+            text-align: right;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
         @media print {
             body { background: white; padding: 0; }
             .card { box-shadow: none; border: 1px solid #ccc; }
@@ -108,8 +113,6 @@
     </header>
 
     <main>
-       
-
         <div class="analysis-grid">
             <div class="card">
                 <div>
@@ -149,44 +152,50 @@
                 </div>
             </div>
         </div>
+
+        <p class="source-note">✦ Openings sourced from Session Register (attendance4)</p>
     </main>
 
     <script>
         function updateAnalysis() {
-            const maleData = JSON.parse(localStorage.getItem('ledger_male') || '{"students":[]}');
+            const maleData   = JSON.parse(localStorage.getItem('ledger_male')   || '{"students":[]}');
             const femaleData = JSON.parse(localStorage.getItem('ledger_female') || '{"students":[]}');
+            const weeks      = parseInt(localStorage.getItem('attendance_global_weeks')) || 0;
             const summaryData = JSON.parse(localStorage.getItem('attendance_summary_data') || '[]');
-            const weeks = parseInt(localStorage.getItem('attendance_global_weeks')) || 0;
 
             let totalAttendance = 0;
-            let totalOpenings = 0;
-            let boysTotal = 0;
-            let girlsTotal = 0;
+            let totalOpenings   = 0;
+            let boysTotal       = 0;
+            let girlsTotal      = 0;
 
             for (let i = 0; i < weeks; i++) {
+                // Boys & girls totals — always from ledger (attendance0 source of truth)
                 let b = 0;
                 maleData.students.forEach(s => b += parseInt(s.weeks[i]) || 0);
-                
+
                 let g = 0;
                 femaleData.students.forEach(s => g += parseInt(s.weeks[i]) || 0);
 
-                const weekOpenings = parseInt(summaryData[i]?.o) || 10;
-                
-                boysTotal += b;
-                girlsTotal += g;
+                const weekOpen = parseInt(summaryData[i]?.o) || 0;
+
+                boysTotal       += b;
+                girlsTotal      += g;
                 totalAttendance += (b + g);
-                totalOpenings += weekOpenings;
+                totalOpenings   += weekOpen;
             }
 
             document.getElementById('term-total').innerText = totalAttendance;
-            document.getElementById('term-open').innerText = totalOpenings;
-            document.getElementById('boys-sum').innerText = boysTotal;
-            document.getElementById('girls-sum').innerText = girlsTotal;
-            
-            const avg = totalOpenings > 0 ? (totalAttendance / totalOpenings).toFixed(1) : "0.0";
+            document.getElementById('term-open').innerText  = totalOpenings;
+            document.getElementById('boys-sum').innerText   = boysTotal;
+            document.getElementById('girls-sum').innerText  = girlsTotal;
+
+            const avg = totalOpenings > 0
+                ? (totalAttendance / totalOpenings).toFixed(1)
+                : '0.0';
             document.getElementById('term-avg').innerText = avg;
         }
 
+        // Re-run whenever attendance0 or attendance4 update localStorage
         window.addEventListener('storage', updateAnalysis);
         updateAnalysis();
     </script>
